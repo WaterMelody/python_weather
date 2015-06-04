@@ -1,5 +1,8 @@
+#pragma once
 
-class ProteinProfiles {
+#include <string>
+
+class Protein {
 public:
-	
-}
+	std::string name_;
+};
