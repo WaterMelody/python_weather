@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <exception> 
+#include <string>
+#include <sstream>
 
 #include <boost/algorithm/string.hpp>
 
@@ -139,3 +141,52 @@ size_t ProteinSequence::ParseXml(const std::string& xml_file) {
 	return success_cnt;
 }
 
+size_t ProteinSequenceSet::ParseXml(const std::string& xml_file) {
+	using namespace boost::property_tree;
+	
+	const string kXmlHead = "<entry ";
+	const string kXmlTail = "</entry>";
+	
+	ifstream fin(xml_file);
+	string line;
+	string xml_str;
+	bool b_begin = false;
+	size_t success_cnt = 0;
+	while (getline(fin, line)) {
+		string tmp_str = trim_left_copy(line);
+		if (strncmp(tmp_str.c_str(), kXmlHead.c_str(), kXmlHead.size()) == 0)
+			b_begin = true;
+		if (b_begin)
+			xml_str += line +  "\n";
+		if (strncmp(tmp_str.c_str(), kXmlTail.c_str(), kXmlTail.size()) == 0) {
+			istringstream sin(xml_str);
+			
+			ptree rt_tree;
+			try {
+				read_xml(sin, rt_tree);
+			} catch (const std::exception& e) {
+				cerr << "Error: " << e.what() <<endl;
+			}
+			ProteinSequence protein_sequence;
+			size_t tmp_ret = protein_sequence.ParsePtree(rt_tree);
+			if (tmp_ret > 0) {
+				protein_sequences_[protein_sequence.name()] = protein_sequence;
+				success_cnt += tmp_ret;
+			}
+			else 
+				cerr << "Warning: Parse ptree error!, name = " << protein_sequence.name() << endl;
+			
+			if (log_status() == LogStatus::FULL_LOG && (success_cnt & 4095) == 0)
+				clog << "\rLoaded " << success_cnt << " successfully";
+			
+			xml_str.clear();
+			b_begin = false;
+		}
+	}
+	clog << endl;
+	fin.close();
+	
+	if (log_status() != SILENT)
+		clog << "Total loaded " << success_cnt << " instances successfully" << endl;
+	return success_cnt;
+}

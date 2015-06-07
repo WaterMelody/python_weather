@@ -9,6 +9,8 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/algorithm/string.hpp>
 
+enum LogStatus {SILENT, PART_LOG, FULL_LOG};
+
 /**
  * @enumerator enum all amino types
  */
@@ -80,10 +82,20 @@ private:
 
 class ProteinSequenceSet {
 public:
+	std::size_t ParseXml(const std::string& xml_file);
 	
+	int update_date() const { return update_date_; }
+	void set_update_date(int update_date) { update_date_ = update_date; }
+	
+	const std::unordered_map<std::string, ProteinSequence>& protein_sequences() const { return protein_sequences_; }
+	
+	LogStatus log_status() const { return log_status_; }
+	void set_log_status(LogStatus log_status) { log_status_ = log_status; }
 	
 private:
-	int upadate_date_;
+	int update_date_;
+	LogStatus log_status_;
 	std::unordered_map<std::string, ProteinSequence> protein_sequences_;
+	
 };
 
