@@ -122,6 +122,7 @@ size_t ProteinSequence::ParseUniprotPtree(const boost::property_tree::ptree& rt_
 			}
 		}
 	}
+	SortGoTerm();
 	return 1;
 }
 
