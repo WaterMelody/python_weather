@@ -8,8 +8,15 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/unordered_map.hpp>
 
 enum LogStatus {SILENT, PART_LOG, FULL_LOG};
+
+enum SubtractProteinMode {MODIFIED_GO_TERM, ADD_NEW_GO_TERM, COMPLETE_NEW_ANNOTATION};
 
 /**
  * @enumerator enum all amino types
@@ -28,20 +35,41 @@ inline char Get1LetterAminoName(AminoType type) {
 	return kTypeChar[type];
 }
 
+/*! @TODO complete the ParseGoa */
 class ProteinSequence {
 public:
 	struct GOType {
 		int id_;
 		std::string term_;
 		std::string evidence_;
+		
+		template<typename Archive>
+		void serialize(Archive& ar, const unsigned int version) {
+			ar & id_  & term_ & evidence_;
+		}
 	};
 	
 public:
 	std::string ToString() const;
 	
-	std::size_t ParsePtree(const boost::property_tree::ptree& ptree);
+	/**
+	 * @param ptree : uniprot database xml ptree structure, the ptree only contains a protein sequence
+	 * @return 1 if load successfully, else return 0
+	 */
+	std::size_t ParseUniprotPtree(const boost::property_tree::ptree& ptree);
 	
-	std::size_t ParseXml(const std::string& xml_file);
+	/**
+	 * @param xml_file : uniprot database xml file name, the xml file only contains a protein sequence
+	 * @return 1 if load successfully, else return 0
+	 */
+	std::size_t ParseUniprotXml(const std::string& xml_file);
+	
+	/**
+	 * @TODO complete the ParseGoa, can modify the interface if needed.
+	 * @param goa_file : goa database file name, contains one instance
+	 * @return the number of protein sequences loaded successfully
+	 */
+	std::size_t ParseGoa(const std::string& goa_file);
 	
 	/**
 	 * @brief accessors and mutators
@@ -64,12 +92,24 @@ public:
 	void add_sequence_amino(AminoType amino) { sequence_.push_back(amino); }
 	
 	const std::vector<GOType>& go_terms() const { return go_terms_; }
-	void set_go_terms(const std::vector<GOType>& go_terms) { go_terms_ = go_terms; }
-	void add_go_term(GOType go_term) { go_terms_.push_back(go_term); }
+	void set_go_terms(const std::vector<GOType>& go_terms) { go_terms_ = go_terms; SortGoTerm(); }
 	
 	const std::vector<int>& ref_pmids() const { return ref_pmids_; }
 	void set_ref_pmids(const std::vector<int>& ref_pmids) { ref_pmids_ = ref_pmids; }
+	
+private:
+	friend boost::serialization::access;
+	template<typename Archive>
+	void serialize(Archive& ar, const unsigned int version) {
+		ar & name_  & species_ & accessions_ & sequence_ & go_terms_ & ref_pmids_;
+	}
+	
+	void add_go_term(const GOType& go_term) { go_terms_.push_back(go_term); }
 	void add_ref_pmid(int pmid) { ref_pmids_.push_back(pmid); }
+	
+	void SortGoTerm() {
+		std::sort(go_terms_.begin(), go_terms_.end(), [](const GOType& t1, const GOType& t2) { return t1.id_ < t2.id_; });
+	}
 	
 private:
 	std::string name_;
@@ -80,9 +120,37 @@ private:
 	std::vector<int> ref_pmids_;
 };
 
+/**
+ * @TODO complete the ParseGoa 
+ * @TODO complete Subtract
+ */
 class ProteinSequenceSet {
 public:
-	std::size_t ParseXml(const std::string& xml_file);
+	ProteinSequenceSet(LogStatus log_status = PART_LOG): update_date_(0), log_status_(log_status) {}
+	ProteinSequenceSet(int update_date, LogStatus log_status = PART_LOG): update_date_(update_date), log_status_(log_status) {}
+	
+	/**
+	 * @param xml_file : uniprot database xml file name, the xml file contains all protein sequence information
+	 * @return the number of protein sequences loaded successfully
+	 */
+	std::size_t ParseUniprotXml(const std::string& xml_file);
+	
+	/**
+	 * @TODO complete the ParseGoa, can modify the interface if needed.
+	 * @param goa_file : goa database file name, contains all goa instances
+	 * @return the number of protein sequences loaded successfully
+	 */
+	std::size_t ParseGoa(const std::string& goa_file);
+	
+	ProteinSequenceSet Subtract(const ProteinSequenceSet& protein_set, SubtractProteinMode mode) const;
+	
+	void Save(const std::string& file_name);
+	
+	/**
+	 * @param file_name : protein_sequence_set serialization file name
+	 * @return the number of protein sequence loaded successfully
+	 */
+	std::size_t Load(const std::string& file_name);
 	
 	int update_date() const { return update_date_; }
 	void set_update_date(int update_date) { update_date_ = update_date; }
@@ -91,6 +159,13 @@ public:
 	
 	LogStatus log_status() const { return log_status_; }
 	void set_log_status(LogStatus log_status) { log_status_ = log_status; }
+	
+private:
+	friend boost::serialization::access;
+	template<typename Archive>
+	void serialize(Archive& ar, const unsigned int version) {
+		ar & update_date_  & log_status_ & protein_sequences_;
+	}
 	
 private:
 	int update_date_;

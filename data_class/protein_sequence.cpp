@@ -7,6 +7,8 @@
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
 using namespace std;
 using namespace boost;
@@ -49,7 +51,7 @@ std::string ProteinSequence::ToString() const {
 	return ret_value;
 }
 
-size_t ProteinSequence::ParsePtree(const boost::property_tree::ptree& rt_tree) {
+size_t ProteinSequence::ParseUniprotPtree(const boost::property_tree::ptree& rt_tree) {
 	using namespace boost::property_tree;
 	
 	if (rt_tree.empty())
@@ -123,7 +125,7 @@ size_t ProteinSequence::ParsePtree(const boost::property_tree::ptree& rt_tree) {
 	return 1;
 }
 
-size_t ProteinSequence::ParseXml(const std::string& xml_file) {
+size_t ProteinSequence::ParseUniprotXml(const std::string& xml_file) {
 	using namespace boost::property_tree;
 	
 	ptree rt_tree;
@@ -136,12 +138,12 @@ size_t ProteinSequence::ParseXml(const std::string& xml_file) {
 	
 	size_t success_cnt = 0;
 	const ptree ptree_entry = rt_tree.get_child("uniprot.entry", EmptyPtree());
-	if (ParsePtree(ptree_entry) > 0)
+	if (ParseUniprotPtree(ptree_entry) > 0)
 		++success_cnt;
 	return success_cnt;
 }
 
-size_t ProteinSequenceSet::ParseXml(const std::string& xml_file) {
+size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 	using namespace boost::property_tree;
 	
 	const string kXmlHead = "<entry ";
@@ -168,7 +170,7 @@ size_t ProteinSequenceSet::ParseXml(const std::string& xml_file) {
 				cerr << "Error: " << e.what() <<endl;
 			}
 			ProteinSequence protein_sequence;
-			size_t tmp_ret = protein_sequence.ParsePtree(rt_tree);
+			size_t tmp_ret = protein_sequence.ParseUniprotPtree(rt_tree);
 			if (tmp_ret > 0) {
 				protein_sequences_[protein_sequence.name()] = protein_sequence;
 				success_cnt += tmp_ret;
@@ -189,4 +191,23 @@ size_t ProteinSequenceSet::ParseXml(const std::string& xml_file) {
 	if (log_status() != SILENT)
 		clog << "Total loaded " << success_cnt << " instances successfully" << endl;
 	return success_cnt;
+}
+
+void ProteinSequenceSet::Save(const std::string& file_name) {
+	ofstream fout(file_name);
+	boost::archive::binary_oarchive oa(fout);
+	oa << *this;
+	fout.close();
+}
+
+size_t ProteinSequenceSet::Load(const std::string& file_name) {
+	protein_sequences_.clear();
+	
+	ifstream fin(file_name);
+	boost::archive::binary_iarchive ia(fin);
+	ia >> *this;
+	if (log_status() != LogStatus::SILENT)
+		clog << "Total load " << protein_sequences_.size() << " protein sequences!" << endl;
+	fin.close();
+	return protein_sequences_.size();
 }
