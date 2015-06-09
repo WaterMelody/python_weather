@@ -12,7 +12,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
-#include <boost/serialization/unordered_map.hpp>
+//#include <boost/serialization/unordered_map.hpp>
 
 enum LogStatus {SILENT, PART_LOG, FULL_LOG};
 
@@ -155,11 +155,14 @@ public:
 	int update_date() const { return update_date_; }
 	void set_update_date(int update_date) { update_date_ = update_date; }
 	
-	const std::unordered_map<std::string, ProteinSequence>& protein_sequences() const { return protein_sequences_; }
+	std::vector<ProteinSequence>& protein_sequences() { return protein_sequences_; }
 	
 	LogStatus log_status() const { return log_status_; }
 	void set_log_status(LogStatus log_status) { log_status_ = log_status; }
 	
+public:
+	std::vector<ProteinSequence> protein_sequences_;
+
 private:
 	friend boost::serialization::access;
 	template<typename Archive>
@@ -171,7 +174,5 @@ private:
 	/*!@brief yyyymmdd*/
 	int update_date_;
 	LogStatus log_status_;
-	std::unordered_map<std::string, ProteinSequence> protein_sequences_;
-	
 };
 

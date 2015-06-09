@@ -56,15 +56,12 @@ size_t ProteinSequence::ParseUniprotPtree(const boost::property_tree::ptree& rt_
 	
 	if (rt_tree.empty())
 		return 0;
-	cout << "enter"<<endl;
+
 	BOOST_FOREACH(const ptree::value_type& v, rt_tree) {
-	  cout << "accession" << v.second.data() << endl;
 		if (v.first == "accession") {
 			add_accession(v.second.data());
-			cout << "accession" << v.second.data() << endl;
 		}
 		else if (v.first == "name") {
-			cout << "name" << v.second.data() << endl;
 			vector<string> tokens;
 			boost::split(tokens, v.second.data(), is_any_of("_"));
 			if (tokens.size() != 2)
@@ -85,10 +82,6 @@ size_t ProteinSequence::ParseUniprotPtree(const boost::property_tree::ptree& rt_
 							cerr << "Warning: pmid not valid" << endl;
 						else
 							add_ref_pmid(pmid);
-						if (pmid == 21248752) {
-							cout << v2.first << endl;
-							cout << v.first << endl;
-						}
 					}
 				}
 			}
@@ -172,13 +165,11 @@ size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 				read_xml(sin, rt_tree);
 			} catch (const std::exception& e) {
 				cerr << "Error: " << e.what() <<endl;
-			}cout<<xml_str<<endl;
+			}
 			ProteinSequence protein_sequence;
-			size_t tmp_ret = protein_sequence.ParseUniprotPtree(rt_tree);
+			size_t tmp_ret = protein_sequence.ParseUniprotPtree(rt_tree.get_child("entry", EmptyPtree()));
 			if (tmp_ret > 0) {
-				if (protein_sequences().count(protein_sequence.name()) > 0)
-					cerr << "Warning: " << protein_sequence.name() << " already exists " <<endl;
-				protein_sequences_[protein_sequence.name()] = protein_sequence;
+				protein_sequences_.push_back(protein_sequence);
 				success_cnt += tmp_ret;
 			}
 			else 
@@ -186,8 +177,7 @@ size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 			
 			if (log_status() == LogStatus::FULL_LOG && (success_cnt & 4095) == 0)
 				clog << "\rLoaded " << success_cnt << " successfully";
-		//cout << xml_str <<endl;	
-		if (success_cnt > 0) break;
+
 			xml_str.clear();
 			b_begin = false;
 		}
