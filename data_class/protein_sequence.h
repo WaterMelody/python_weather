@@ -144,7 +144,7 @@ public:
 	
 	ProteinSequenceSet Subtract(const ProteinSequenceSet& protein_set, SubtractProteinMode mode) const;
 	
-	void Save(const std::string& file_name);
+	void Save(const std::string& file_name) const;
 	
 	/**
 	 * @param file_name : protein_sequence_set serialization file name
@@ -168,6 +168,7 @@ private:
 	}
 	
 private:
+	/*!@brief yyyymmdd*/
 	int update_date_;
 	LogStatus log_status_;
 	std::unordered_map<std::string, ProteinSequence> protein_sequences_;
