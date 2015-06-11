@@ -58,6 +58,5 @@ size_t ProteinSequenceSet::ParseGOA(const std::string& goa_file) {
 	protein_sequence.set_species(tmpname2[1]);
 	protein_sequences_.push_back(protein_sequence);
 	std::vector<GOType> go_terms;
-	clog << endl;
 	fin.close();
 }
