@@ -1,8 +1,8 @@
-#include "protein_sequence.h" 
+#include "protein_sequence.h"
 
 #include <iostream>
 #include <cstdlib>
-#include <exception> 
+#include <exception>
 #include <string>
 #include <sstream>
 
@@ -27,7 +27,7 @@ static const boost::property_tree::ptree& EmptyPtree() {
 
 std::string ProteinSequence::ToString() const {
 	string ret_value("Protein sequence: \n");
-	
+
 	ret_value += "name: " + name() + "\n";
 	ret_value += "species: " + species() + "\n";
 	ret_value += "accessions:";
@@ -53,7 +53,7 @@ std::string ProteinSequence::ToString() const {
 
 size_t ProteinSequence::ParseUniprotPtree(const boost::property_tree::ptree& rt_tree) {
 	using namespace boost::property_tree;
-	
+
 	if (rt_tree.empty())
 		return 0;
 
@@ -124,7 +124,7 @@ size_t ProteinSequence::ParseUniprotPtree(const boost::property_tree::ptree& rt_
 
 size_t ProteinSequence::ParseUniprotXml(const std::string& xml_file) {
 	using namespace boost::property_tree;
-	
+
 	ptree rt_tree;
 	try {
 		read_xml(xml_file, rt_tree);
@@ -132,7 +132,7 @@ size_t ProteinSequence::ParseUniprotXml(const std::string& xml_file) {
 		cerr << "Error: " << e.what() <<endl;
 		return 0;
 	}
-	
+
 	size_t success_cnt = 0;
 	const ptree ptree_entry = rt_tree.get_child("uniprot.entry", EmptyPtree());
 	if (ParseUniprotPtree(ptree_entry) > 0)
@@ -142,10 +142,10 @@ size_t ProteinSequence::ParseUniprotXml(const std::string& xml_file) {
 
 size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 	using namespace boost::property_tree;
-	
+
 	const string kXmlHead = "<entry ";
 	const string kXmlTail = "</entry>";
-	
+
 	ifstream fin(xml_file);
 	string line;
 	string xml_str;
@@ -159,7 +159,7 @@ size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 			xml_str += line +  "\n";
 		if (strncmp(tmp_str.c_str(), kXmlTail.c_str(), kXmlTail.size()) == 0) {
 			istringstream sin(xml_str);
-			
+
 			ptree rt_tree;
 			try {
 				read_xml(sin, rt_tree);
@@ -172,9 +172,9 @@ size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 				protein_sequences_.push_back(protein_sequence);
 				success_cnt += tmp_ret;
 			}
-			else 
+			else
 				cerr << "Warning: Parse ptree error!, name = " << protein_sequence.name() << endl;
-			
+
 			if (log_status() == LogStatus::FULL_LOG && (success_cnt & 4095) == 0)
 				clog << "\rLoaded " << success_cnt << " successfully";
 
@@ -184,13 +184,78 @@ size_t ProteinSequenceSet::ParseUniprotXml(const std::string& xml_file) {
 	}
 	clog << endl;
 	fin.close();
-	
+
 	if (success_cnt != protein_sequences().size())
 	  cerr << "Error: success_cnt != protein_sequences().size()" << endl;
-	
+
 	if (log_status() != SILENT)
 		clog << "Total loaded " << success_cnt << " instances successfully" << endl;
 	return success_cnt;
+}
+
+size_t ProteinSequenceSet::ParseGoa(const std::string& goa_file) {
+	ifstream fin(goa_file);
+	string line;
+	string go;
+	string name;
+	string name_last="";
+	std::vector<ProteinSequence::GOType> go_terms;
+	int first = 1;
+	while (getline(fin, line)) {
+		string tmp_str = line;
+		/*分割记录*/
+		if (line == ""){
+			ProteinSequence protein_sequence;
+			protein_sequence.set_go_terms(go_terms);
+			vector<string> tmpname2;
+			boost::split( tmpname2, name_last, boost::is_any_of( "_" ), boost::token_compress_on );
+			protein_sequence.set_name(tmpname2[0]);
+			protein_sequence.set_species(tmpname2[1]);
+			protein_sequences_.push_back(protein_sequence);
+			fin.close();
+			return 1;
+		}
+		vector<string> vStr;
+		boost::split( vStr, tmp_str, boost::is_any_of( "	" ), boost::token_compress_off );
+		/*提取出符合 Uniprot 格式的名称*/
+		vector<string> tmpname;
+		boost::split( tmpname, vStr[10], boost::is_any_of( "|" ), boost::token_compress_on );
+		name = tmpname[0];
+		if (name!=name_last){
+			/*当该条记录的蛋白质与上条不同时，导出上条数据并清空暂存GO序列*/
+			if(!first){
+				ProteinSequence protein_sequence;
+				protein_sequence.set_go_terms(go_terms);
+				vector<string> tmpname2;
+				boost::split( tmpname2, name_last, boost::is_any_of( "_" ), boost::token_compress_on );
+				protein_sequence.set_name(tmpname2[0]);
+				protein_sequence.set_species(tmpname2[1]);
+				protein_sequences_.push_back(protein_sequence);
+			}
+			go_terms.clear();
+		}
+		first = 0;
+		/*导入 GO 记录至暂存序列中*/
+		ProteinSequence::GOType tempgo;
+		tempgo.evidence_ = vStr[6];
+		go = vStr[4];
+		vector<string> tmpgoid;
+		boost::split( tmpgoid, go, boost::is_any_of( ":" ), boost::token_compress_on );
+		tempgo.id_ = atoi(tmpgoid[1].c_str());
+		tempgo.term_ = vStr[8]+':'+vStr[9];
+		go_terms.push_back(tempgo);
+		name_last = name;
+	}
+	/*最后一行的处理*/
+	ProteinSequence protein_sequence;
+	protein_sequence.set_go_terms(go_terms);
+	vector<string> tmpname2;
+	boost::split( tmpname2, name_last, boost::is_any_of( "_" ), boost::token_compress_on );
+	protein_sequence.set_name(tmpname2[0]);
+	protein_sequence.set_species(tmpname2[1]);
+	protein_sequences_.push_back(protein_sequence);
+	fin.close();
+	return 1;
 }
 
 void ProteinSequenceSet::Save(const std::string& file_name) const {
@@ -202,7 +267,7 @@ void ProteinSequenceSet::Save(const std::string& file_name) const {
 
 size_t ProteinSequenceSet::Load(const std::string& file_name) {
 	protein_sequences_.clear();
-	
+
 	ifstream fin(file_name);
 	boost::archive::binary_iarchive ia(fin);
 	ia >> *this;
