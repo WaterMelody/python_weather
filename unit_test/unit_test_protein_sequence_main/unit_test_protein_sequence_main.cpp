@@ -55,7 +55,18 @@ int main() {
 	}
 	fout.close();
 	
-	
+	ProteinSequenceSet protein_set(20150100, LogStatus::FULL_LOG);
+	protein_set.ParseGoa("/home/kochiyaocean/protein_function/test.txt");
+	protein_set.Save("goa.protein_set");	
+	protein_set.Load("goa.protein_set");
+	for(size_t i = 0; i < protein_set.protein_sequences().size(); i++) {
+	  cout<<protein_set.protein_sequences().at(i).ToString();
+	}
+	ProteinSequence seq =  protein_set.protein_sequences().at(0);
+	std::vector<AminoType> ami = seq.sequence();
+	for(size_t i = 0; i < ami.size(); i++) {
+	  cout<<Get3LetterAminoName(ami[i]);
+	}
 	
 	clog << "Complete" << endl;
 	return 0;
