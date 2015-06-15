@@ -146,6 +146,8 @@ public:
 	
 	void Save(const std::string& file_name) const;
 	
+	void SaveToFasta(const std::string& file_name) const;
+	
 	/**
 	 * @param file_name : protein_sequence_set serialization file name
 	 * @return the number of protein sequence loaded successfully

@@ -265,6 +265,24 @@ void ProteinSequenceSet::Save(const std::string& file_name) const {
 	fout.close();
 }
 
+void ProteinSequenceSet::SaveToFasta(const std::string& file_name) const{
+        ofstream fout(file_name);
+	for(size_t i = 0; i < protein_sequences_.size(); ++i) {
+		ProteinSequence item = protein_sequences_[i];
+		fout<<">";
+		fout<<"sp|";
+		std::vector<std::string> vacc = item. accessions();
+		fout<<vacc.at(0);
+		fout<<"|";
+		fout<<item.name()<<"_"<<item.species()<<endl;
+		std::vector<AminoType> ami = item.sequence();
+		for(size_t j = 0; j < ami.size(); ++j) {
+	  		fout<<Get3LetterAminoName(ami[i]);
+		}			
+	}
+        fout.close();
+}
+
 size_t ProteinSequenceSet::Load(const std::string& file_name) {
 	protein_sequences_.clear();
 

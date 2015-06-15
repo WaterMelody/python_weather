@@ -1,3 +1,11 @@
+#################
+## cmake
+#################
+*.cmake
+CMakefiles
+Makefile
+CMakeCache.txt
+*.a
 
 #################
 ## KDevelop
