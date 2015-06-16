@@ -3,10 +3,11 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 enum LogStatus {SILENT, PART_LOG, FULL_LOG};
 
-class GOType {
+class GOTerm {
 public:
 	std::string ToString() const;
 
@@ -22,8 +23,8 @@ public:
 	const char& type() const { return type_; }
 	void set_type(const char& type) { type_ = type; }
 
-	const std::vector<GOType>& childs() const { return childs_; }
-	void set_childs(const std::vector<GOType>& childs) { childs_ = childs; SortChild()}
+	const std::vector<int>& childs() const { return childs_; }
+	void set_childs(const std::vector<GOType>& childs) { childs_ = childs; SortChild(); }
 
 	std::size_t FindFather(const int& node);
 
@@ -36,18 +37,21 @@ private:
 
 private:
 	int id_;
-	int father_
+	int father_;
 	std::string term_;
 	std::vector<int> childs_;
-	char type_
+	char type_;
 };
 
-class GOTypeSet {
+class GOTermSet {
 public:
 	GOTypeSet(LogStatus log_status = PART_LOG): update_date_(0), log_status_(log_status) {}
 	GOTypeSet(int update_date, LogStatus log_status = PART_LOG): update_date_(update_date), log_status_(log_status) {}
 
+	std::vector<int> SearchAncestors(const std::vector<int>& go_term_ids);
 
+	const GOTerm& QueryGOTerm(int go_id);
+	
 	std::size_t ParseGo(const std::string& go_file);
 
 	void Save(const std::string& file_name) const;
@@ -57,16 +61,13 @@ public:
 	int update_date() const { return update_date_; }
 	void set_update_date(int update_date) { update_date_ = update_date; }
 
-	std::vector<GOType>& gotypes() { return gotypes_; }
+	const std::unordered_map<int, GOTerm>& go_terms() const { return go_terms_; }
 
 	LogStatus log_status() const { return log_status_; }
 	void set_log_status(LogStatus log_status) { log_status_ = log_status; }
-
-public:
-	std::vector<GOType> gotypes_;
-
-
+	
 private:
+	std::unordered_map<int, GOTerm> go_terms_;
 	/*!@brief yyyymmdd*/
 	int update_date_;
 	LogStatus log_status_;
