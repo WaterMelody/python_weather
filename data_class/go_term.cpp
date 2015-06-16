@@ -73,7 +73,7 @@ size_t GOTermSet::Load(const std::string& file_name) {
 	boost::archive::binary_iarchive ia(fin);
 	ia >> *this;
 	if (log_status() != LogStatus::SILENT)
-		clog << "Total load " << go_terms_.size() << " protein sequences!" << endl;
+		clog << "Total load " << go_terms_.size() << " go terms!" << endl;
 	fin.close();
 	return go_terms_.size();
 }
