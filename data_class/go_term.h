@@ -18,7 +18,7 @@ public:
 	void set_father(const int& father) { father_ = father; }
 
 	const std::string& term() const { return term_; }
-	void set_name(const std::string& term) { term_ = term; }
+	void set_term(const std::string& term) { term_ = term; }
 
 	const char& type() const { return type_; }
 	void set_type(const char& type) { type_ = type; }
@@ -27,10 +27,10 @@ public:
 	void set_childs(const std::vector<GOType>& childs) { childs_ = childs; SortChild(); }
 
 	std::vector<int> FindAncestor(const int& node);
-
-private:
 	void add_child(const int child) { childs_.push_back(child); }
 	void add_father(const int father) { fathers_.push_back(father); }
+private:
+
 
 	void SortChild() {
 		std::sort(childs_.begin(), childs_.end(), [](const int t1, const int t2) { return t1 < t2; });
@@ -55,7 +55,7 @@ public:
 	std::vector<int> FindAncestors(const std::vector<int>& go_term_ids);
 
 	const GOTerm& QueryGOTerm(int go_id);
-	
+
 	std::size_t ParseGo(const std::string& go_file);
 
 	void Save(const std::string& file_name) const;
@@ -69,7 +69,7 @@ public:
 
 	LogStatus log_status() const { return log_status_; }
 	void set_log_status(LogStatus log_status) { log_status_ = log_status; }
-	
+
 private:
 	std::unordered_map<int, GOTerm> go_terms_;
 	/*!@brief yyyymmdd*/
