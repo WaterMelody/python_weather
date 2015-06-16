@@ -14,8 +14,8 @@ public:
 	const int& id() const { return id_; }
 	void set_id(const int& id) { id_ = id; }
 
-	const int& father() const { return father_; }
-	void set_father(const int& father) { father_ = father; }
+	const std::vector<int>& const { return fathers_; }
+	void set_father(const int& fathers) { fathers_ = fathers;  SortFather(); }
 
 	const std::string& term() const { return term_; }
 	void set_term(const std::string& term) { term_ = term; }
@@ -24,7 +24,7 @@ public:
 	void set_type(const char& type) { type_ = type; }
 
 	const std::vector<int>& childs() const { return childs_; }
-	void set_childs(const std::vector<GOType>& childs) { childs_ = childs; SortChild(); }
+	void set_childs(const std::vector<int>& childs) { childs_ = childs; SortChild(); }
 
 	std::vector<int> FindAncestor(const int& node);
 	void add_child(const int child) { childs_.push_back(child); }
@@ -42,7 +42,7 @@ private:
 private:
 	int id_;
 	std::string term_;
-	std::vector<int> fathers_
+	std::vector<int> fathers_;
 	std::vector<int> childs_;
 	char type_;
 };
