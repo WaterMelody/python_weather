@@ -13,31 +13,35 @@ public:
 	const int& id() const { return id_; }
 	void set_id(const int& id) { id_ = id; }
 
-	const int& father() const { return father_; }
-	void set_father(const int& father) { father_ = father; }
-
 	const std::string& term() const { return term_; }
 	void set_name(const std::string& term) { term_ = term; }
 
 	const char& type() const { return type_; }
 	void set_type(const char& type) { type_ = type; }
 
+	const std::vector<GOType>& fathers() const { return fathers_; }
+	void set_fathers(const std::vector<GOType>& fathers) { fathers_ = fathers; SortFather()}
+
 	const std::vector<GOType>& childs() const { return childs_; }
 	void set_childs(const std::vector<GOType>& childs) { childs_ = childs; SortChild()}
 
-	std::size_t FindFather(const int& node);
+	std::vector<int> FindAncestor(const int& node);
 
 private:
 	void add_child(const int child) { childs_.push_back(child); }
+	void add_father(const int father) { fathers_.push_back(father); }
 
 	void SortChild() {
 		std::sort(childs_.begin(), childs_.end(), [](const int t1, const int t2) { return t1 < t2; });
 	}
+	void SortFather() {
+		std::sort(fathers_.begin(), fathers_.end(), [](const int t1, const int t2) { return t1 < t2; });
+	}
 
 private:
 	int id_;
-	int father_
 	std::string term_;
+	std::vector<int> fathers_
 	std::vector<int> childs_;
 	char type_
 };
