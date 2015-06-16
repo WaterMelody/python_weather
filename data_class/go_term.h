@@ -26,19 +26,23 @@ public:
 	const std::vector<int>& childs() const { return childs_; }
 	void set_childs(const std::vector<GOType>& childs) { childs_ = childs; SortChild(); }
 
-	std::size_t FindFather(const int& node);
+	std::vector<int> FindAncestor(const int& node);
 
 private:
 	void add_child(const int child) { childs_.push_back(child); }
+	void add_father(const int father) { fathers_.push_back(father); }
 
 	void SortChild() {
 		std::sort(childs_.begin(), childs_.end(), [](const int t1, const int t2) { return t1 < t2; });
 	}
+	void SortFather() {
+		std::sort(fathers_.begin(), fathers_.end(), [](const int t1, const int t2) { return t1 < t2; });
+	}
 
 private:
 	int id_;
-	int father_;
 	std::string term_;
+	std::vector<int> fathers_
 	std::vector<int> childs_;
 	char type_;
 };
@@ -48,7 +52,7 @@ public:
 	GOTypeSet(LogStatus log_status = PART_LOG): update_date_(0), log_status_(log_status) {}
 	GOTypeSet(int update_date, LogStatus log_status = PART_LOG): update_date_(update_date), log_status_(log_status) {}
 
-	std::vector<int> SearchAncestors(const std::vector<int>& go_term_ids);
+	std::vector<int> FindAncestors(const std::vector<int>& go_term_ids);
 
 	const GOTerm& QueryGOTerm(int go_id);
 	
