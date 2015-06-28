@@ -21,6 +21,7 @@ link_directories(/usr/local/lib)
 
 add_subdirectory(data_class)
 add_subdirectory(unit_test)
+add_subdirectory(data_processing)
 #add_subdirectory(external_library)
 #add_subdirectory(learning)
 
