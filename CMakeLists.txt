@@ -19,9 +19,10 @@ endif()
 include_directories(${root_SOURCE_DIR} ./)
 link_directories(/usr/local/lib)
 
+add_subdirectory(common)
 add_subdirectory(data_class)
 add_subdirectory(unit_test)
 add_subdirectory(data_processing)
 #add_subdirectory(external_library)
-#add_subdirectory(learning)
+add_subdirectory(learning)
 
