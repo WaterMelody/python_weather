@@ -1,0 +1,22 @@
+city:上海
+
+date:02-27		day:多云(18°C )		night:晴( 8°C)
+
+date:02-28		day:阴(20°C )		night:多云( 5°C)
+
+date:02-29		day:晴(10°C )		night:晴( 3°C)
+
+date:03-01		day:晴(11°C )		night:晴( 5°C)
+
+date:03-02		day:晴(16°C )		night:晴( 8°C)
+
+date:03-03		day:多云(19°C )		night:晴( 10°C)
+
+date:03-04		day:阵雨(19°C )		night:零散阵雨( 11°C)
+
+date:03-05		day:零散阵雨(16°C )		night:零散阵雨( 7°C)
+
+date:03-06		day:零散阵雨(12°C )		night:阵雨( 6°C)
+
+date:03-07		day:阵雨(14°C )		night:少云( 6°C)
+
